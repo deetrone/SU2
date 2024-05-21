@@ -23,4 +23,4 @@
 	url = https://github.com/pcarruscag/MEL.git
 [submodule "subprojects/Mutationpp"]
 	path = subprojects/Mutationpp
-	url = https://github.com/CatarinaGarbacz/Mutationpp.git
+	url = https://github.com/bariselli/Mutationpp.git
