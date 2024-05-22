@@ -24,3 +24,4 @@
 [submodule "subprojects/Mutationpp"]
 	path = subprojects/Mutationpp
 	url = https://github.com/bariselli/Mutationpp.git
+	branch = sts-ig
