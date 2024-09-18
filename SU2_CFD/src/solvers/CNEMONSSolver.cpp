@@ -537,10 +537,6 @@ void CNEMONSSolver::BC_IsothermalNonCatalytic_Wall(CGeometry *geometry,
   vector<su2double> rhos; rhos.resize(nSpecies,0.0);
   vector<su2double> energies;
 
-  if (ionization) {
-    SU2_MPI::Error("NEED TO TAKE A CLOSER LOOK AT THE JACOBIAN W/ IONIZATION",CURRENT_FUNCTION);
-  }
-
   /*--- Define 'proportional control' constant ---*/
   const su2double C = 5;
 
@@ -552,6 +548,12 @@ void CNEMONSSolver::BC_IsothermalNonCatalytic_Wall(CGeometry *geometry,
 
   su2double **Jacobian_i = nullptr;
   if (implicit) {
+
+    if (ionization) {
+      SU2_MPI::Error("NEED TO TAKE A CLOSER LOOK AT THE JACOBIAN W/ IONIZATION",CURRENT_FUNCTION);
+    }
+
+
     Jacobian_i = new su2double* [nVar];
     for (auto iVar = 0u; iVar < nVar; iVar++)
       Jacobian_i[iVar] = new su2double [nVar] ();

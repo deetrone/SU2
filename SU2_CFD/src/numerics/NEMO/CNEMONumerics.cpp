@@ -228,9 +228,10 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
                                        su2double val_therm_conductivity_ve,
                                        const CConfig *config) {
 
-  if (ionization) {
+  /*if (ionization) {
     SU2_MPI::Error("NEED TO IMPLEMENT IONIZED FUNCTIONALITY!!!",CURRENT_FUNCTION);
-  }
+  }*/
+  // J_e (diffusive flux associated with electrons NOT implemented)
 
   // Requires a slightly non-standard primitive vector:
   // Assumes -     V = [Y1, ... , Yn, T, Tve, ... ]
@@ -257,11 +258,15 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
   const auto& V   = val_primvar;
   const auto& GV  = val_gradprimvar;
   const auto& hs = fluidmodel->ComputeSpeciesEnthalpy(T, Tve, val_eve);
+  // molar mass and species charge
+  const auto& Ms = fluidmodel->GetSpeciesMolarMass(); // [iSpecies] long vector if nEl=1 ->> Ms[0]=Me;
+  const auto& Cs = fluidmodel->GetSpeciesCharge(); // [iSpecies] ... need to make function
 
   /*--- Pre-compute mixture quantities ---*/  //TODO
+  // changed the for loop indexing (nEl, nSpecies)
   su2double Vector[MAXNDIM] = {0.0};
   for (auto iDim = 0; iDim < nDim; iDim++) {
-    for (auto iSpecies = 0; iSpecies < nHeavy; iSpecies++) {
+    for (auto iSpecies = nEl; iSpecies < nSpecies; iSpecies++) {
       Vector[iDim] += rho*Ds[iSpecies]*GV[RHOS_INDEX+iSpecies][iDim];
     }
   }
@@ -272,10 +277,15 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
   /*--- Populate entries in the viscous flux vector ---*/
   for (auto iDim = 0; iDim < nDim; iDim++) {
 
-    /*--- Species diffusion velocity ---*/
-    for (auto iSpecies = 0; iSpecies < nHeavy; iSpecies++) {
+      /*--- Species diffusion velocity ---*/
+    if(nEl==1) Flux_Tensor[nEl-1][iDim] = 0.0;
+    // check if nEl-1 is ok style-wise, check sign of flux (i.e. negative signs not applied exactly like Scalabrin, how does it affect Je)
+    for (auto iSpecies = nEl; iSpecies < nSpecies; iSpecies++) {
       Flux_Tensor[iSpecies][iDim] = rho*Ds[iSpecies]*GV[RHOS_INDEX+iSpecies][iDim]
           - V[RHOS_INDEX+iSpecies]*Vector[iDim];
+      if (nEl==1) { 
+        Flux_Tensor[nEl-1][iDim] += Ms[nEl-1] * Flux_Tensor[iSpecies][iDim] * Cs[iSpecies] / Ms[iSpecies];
+      }
     }
 
     /*--- Shear-stress/momentum related terms ---*/
@@ -286,7 +296,8 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
     }
 
     /*--- Diffusion terms ---*/
-    for (auto iSpecies = 0; iSpecies < nHeavy; iSpecies++) {
+    // changed nHeavy -> nSpecies in for loop, is that correct, is Je part of this summation?
+    for (auto iSpecies = 0; iSpecies < nSpecies; iSpecies++) {
       Flux_Tensor[nSpecies+nDim][iDim]   += Flux_Tensor[iSpecies][iDim] * hs[iSpecies];
       Flux_Tensor[nSpecies+nDim+1][iDim] += Flux_Tensor[iSpecies][iDim] * val_eve[iSpecies];
     }

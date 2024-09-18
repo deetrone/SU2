@@ -37,7 +37,7 @@ CMutationTCLib::CMutationTCLib(const CConfig* config, unsigned short val_nDim): 
   /* Allocating memory*/
   Cv_ks.resize(nEnergyEq*nSpecies,0.0);
   es.resize(nEnergyEq*nSpecies,0.0);
-  omega_vec.resize(1,0.0);
+  omega_vec.resize(2,0.0); //changed from omega_vec.resize(1,0.0); due to Bariselli M++ updates
   CatRecombTable.resize(nSpecies,2) = 0;
 
   /*--- Set up inputs to define type of mixture in the Mutation++ library ---*/
@@ -50,7 +50,9 @@ CMutationTCLib::CMutationTCLib(const CConfig* config, unsigned short val_nDim): 
   else if (Kind_TransCoeffModel == TRANSCOEFFMODEL::CHAPMANN_ENSKOG)
     transport_model = "Chapmann-Enskog_LDLT";
 
-  opt.setStateModel("ChemNonEqTTv");
+  //TODO: make this controlled by config option
+  //opt.setStateModel("ChemNonEqTTv");
+  opt.setStateModel("ChemNonEqTTVCr_CNRBari");
   if (frozen) opt.setMechanism("none");
   opt.setViscosityAlgorithm(transport_model);
   opt.setThermalConductivityAlgorithm(transport_model);
@@ -58,7 +60,11 @@ CMutationTCLib::CMutationTCLib(const CConfig* config, unsigned short val_nDim): 
   /* Initialize mixture object */
   mix.reset(new Mutation::Mixture(opt));
 
-  for(iSpecies = 0; iSpecies < nSpecies; iSpecies++) MolarMass[iSpecies] = 1000* mix->speciesMw(iSpecies); // x1000 to have Molar Mass in kg/kmol
+  //TODO: regression test if the GetMolarMass and GetSpeciesCharge work if they only return the values calculated here and do not recompute.
+  for(iSpecies = 0; iSpecies < nSpecies; iSpecies++) {
+    MolarMass[iSpecies] = 1000* mix->speciesMw(iSpecies); // x1000 to have Molar Mass in kg/kmol
+    ChargeSpecies[iSpecies] = mix->speciesCharge(iSpecies);
+  }
 
   if (mix->hasElectrons()) {
    // if (config->GetViscous()) {
@@ -112,8 +118,9 @@ void CMutationTCLib::SetTDStateRhosTTv(vector<su2double>& val_rhos, su2double va
   rhos = val_rhos;
 
   Density = 0.0;
-  for (iSpecies = 0; iSpecies < nSpecies; iSpecies++)
+  for (iSpecies = 0; iSpecies < nSpecies; iSpecies++) {
     Density += rhos[iSpecies];
+  }
 
   Pressure = ComputePressure();
 
@@ -123,16 +130,27 @@ void CMutationTCLib::SetTDStateRhosTTv(vector<su2double>& val_rhos, su2double va
 
 vector<su2double>& CMutationTCLib::GetSpeciesMolarMass(){
 
-   for(iSpecies = 0; iSpecies < nSpecies; iSpecies++) MolarMass[iSpecies] = 1000* mix->speciesMw(iSpecies); // x1000 to have Molar Mass in kg/kmol
+   for(iSpecies = 0; iSpecies < nSpecies; iSpecies++) {
+       MolarMass[iSpecies] = 1000* mix->speciesMw(iSpecies); // x1000 to have Molar Mass in kg/kmol
+   }
 
    return MolarMass;
+}
+
+vector<su2double>& CMutationTCLib::GetSpeciesCharge() {
+
+  for(iSpecies = 0; iSpecies < nSpecies; iSpecies++) ChargeSpecies[iSpecies] = mix->speciesCharge(iSpecies);
+
+  return ChargeSpecies;
 }
 
 vector<su2double>& CMutationTCLib::GetSpeciesCvTraRot(){
 
    mix->getCvsMass(Cv_ks.data());
 
-   for(iSpecies = 0; iSpecies < nSpecies; iSpecies++) Cvtrs[iSpecies] = Cv_ks[iSpecies];
+   for(iSpecies = 0; iSpecies < nSpecies; iSpecies++) {
+       Cvtrs[iSpecies] = Cv_ks[iSpecies];
+   }
 
    return Cvtrs;
 }
@@ -142,7 +160,9 @@ vector<su2double>& CMutationTCLib::ComputeSpeciesCvVibEle(su2double val_T){
 
    mix->getCvsMass(Cv_ks.data());
 
-   for(iSpecies = 0; iSpecies < nSpecies; iSpecies++) Cvves[iSpecies] = Cv_ks[nSpecies+iSpecies];
+   for(iSpecies = 0; iSpecies < nSpecies; iSpecies++) {
+       Cvves[iSpecies] = Cv_ks[nSpecies+iSpecies];
+   }
 
    return Cvves;
 }
@@ -162,7 +182,9 @@ vector<su2double>& CMutationTCLib::ComputeSpeciesEve(su2double val_T, bool vibe_
 
   mix->getEnergiesMass(es.data());
 
-  for(iSpecies = 0; iSpecies < nSpecies; iSpecies++) eves[iSpecies] = es[nSpecies+iSpecies];
+  for(iSpecies = 0; iSpecies < nSpecies; iSpecies++) {
+     eves[iSpecies] = es[nSpecies+iSpecies];
+  }
 
   return eves;
 }
@@ -180,7 +202,8 @@ su2double CMutationTCLib::ComputeEveSourceTerm(){
 
   mix->energyTransferSource(omega_vec.data());
 
-  omega = omega_vec[0];
+  //omega = omega_vec[0]; //changed for M++ 'Bariselli' version, 0 index refers to TotalEnergy Source Term due to Radiation
+  omega = omega_vec[1];
 
   return omega;
 }
@@ -202,7 +225,6 @@ vector<su2double>& CMutationTCLib::GetDiffusionCoeff(){
 su2double CMutationTCLib::GetViscosity(){
 
   Mu = mix->viscosity();
-
   return Mu;
 }
 
@@ -247,7 +269,9 @@ vector<su2double>& CMutationTCLib::GetSpeciesFormationEnthalpy() {
 
    mix->speciesHOverRT(Tref, Tref, Tref, Tref, Tref, NULL, NULL, NULL, NULL, NULL, hf_RT.data());
 
-   for (iSpecies = 0; iSpecies < nSpecies; iSpecies++) Enthalpy_Formation[iSpecies] = hf_RT[iSpecies]*(RuSI*Tref*1000.0)/MolarMass[iSpecies];
+   for (iSpecies = 0; iSpecies < nSpecies; iSpecies++) {
+       Enthalpy_Formation[iSpecies] = hf_RT[iSpecies]*(RuSI*Tref*1000.0)/MolarMass[iSpecies];
+   }
 
    return Enthalpy_Formation;
 }
