@@ -33,6 +33,7 @@ CMutationTCLib::CMutationTCLib(const CConfig* config, unsigned short val_nDim): 
 
   Mutation::MixtureOptions opt(gas_model);
   string transport_model;
+  string state_model;
 
   /* Allocating memory*/
   Cv_ks.resize(nEnergyEq*nSpecies,0.0);
@@ -50,9 +51,15 @@ CMutationTCLib::CMutationTCLib(const CConfig* config, unsigned short val_nDim): 
   else if (Kind_TransCoeffModel == TRANSCOEFFMODEL::CHAPMANN_ENSKOG)
     transport_model = "Chapmann-Enskog_LDLT";
 
-  //TODO: make this controlled by config option
+  /*--- Select state model ---*/
+  if(config->GetMPP_StS())
+    state_model="ChemNonEqTTVCr_CNRBari";
+  else
+    state_model="ChemNonEqTTv";
+
+  opt.setStateModel(state_model);
   //opt.setStateModel("ChemNonEqTTv");
-  opt.setStateModel("ChemNonEqTTVCr_CNRBari");
+  //opt.setStateModel("ChemNonEqTTVCr_CNRBari");
   if (frozen) opt.setMechanism("none");
   opt.setViscosityAlgorithm(transport_model);
   opt.setThermalConductivityAlgorithm(transport_model);

@@ -1202,6 +1202,8 @@ void CConfig::SetConfig_Options() {
   addBoolOption("FROZEN_MIXTURE", frozen, false);
   /* DESCRIPTION: Specify if there is ionization */
   addBoolOption("IONIZATION", ionization, false);
+  /* DESCRIPTION: Specify if which state model is used in Mutation++ */
+  addBoolOption("MPP_STATE_TO_STATE", mpp_sts, false);
   /* DESCRIPTION: Specify if there is VT transfer residual limiting */
   addBoolOption("VT_RESIDUAL_LIMITING", vt_transfer_res_limit, false);
   /* DESCRIPTION: List of catalytic walls */

@@ -1196,6 +1196,7 @@ private:
   pnorm_heat;                               /*!< \brief pnorm for heat-flux. */
   bool frozen,                              /*!< \brief Flag for determining if mixture is frozen. */
   ionization,                               /*!< \brief Flag for determining if free electron gas is in the mixture. */
+  mpp_sts,                                  /*!< \brief Flag for determining which state model is selected in Mutation++.  */
   vt_transfer_res_limit,                    /*!< \brief Flag for determining if residual limiting for source term VT-transfer is used. */
   monoatomic,                               /*!< \brief Flag for monoatomic mixture. */
   Supercatalytic_Wall;                      /*!< \brief Flag for supercatalytic wall. */
@@ -5362,6 +5363,11 @@ public:
    * \brief Indicates whether electron gas is present in the gas mixture.
    */
   bool GetIonization(void) const { return ionization; }
+
+  /*!
+  * \brief Indicates whether electron gas is present in the gas mixture.
+  */
+  bool GetMPP_StS(void) const { return mpp_sts; }
 
   /*!
    * \brief Indicates whether the VT source residual is limited.

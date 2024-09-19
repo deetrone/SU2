@@ -92,16 +92,9 @@ CNumerics::ResidualType<> CSource_NEMO::ComputeChemistry(const CConfig *config) 
   su2double T   = V_i[T_INDEX];
   su2double Tve = V_i[TVE_INDEX];
 
-  //std::cout << std::endl;
-
- // std::cout << "T = " << T << " K,   Tve = " << Tve << " K" << std::endl;
-
   for(iSpecies = 0; iSpecies < nSpecies; iSpecies++) {
     rhos[iSpecies]=V_i[RHOS_INDEX+iSpecies];
-//    std::cout << "Rho for species " << iSpecies << " = " << rhos[iSpecies] << std::endl;
   }
-
- // std::cout << std::endl;
 
   /*--- Set mixture state ---*/
   fluidmodel->SetTDStateRhosTTv(rhos, T, Tve);
