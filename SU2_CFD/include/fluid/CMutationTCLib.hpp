@@ -45,7 +45,7 @@ private:
 
   vector<su2double> Cv_ks,                /*!< \brief Species specific heats at constant volume. */
   es,                                     /*!< \brief Species energies. */
-  omega_vec;                              /*!< \brief Dummy vector for vibrational energy source term. */
+  omega_vec;                              /*!< \brief Dummy vector for radiative (for total energy) and vibrational energy source term. */
 
   su2double Tref;                         /*!< \brief Reference temperature. */
 
@@ -102,6 +102,11 @@ public:
   su2double ComputeEveSourceTerm() final;
 
   /*!
+  * \brief Compute energy source term due to radiation (bound-bound).
+  */
+  su2double ComputeRadSourceTerm() final;
+
+  /*!
    * \brief Compute species enthalpies.
    */
   vector<su2double>& ComputeSpeciesEnthalpy(su2double val_T, su2double val_Tve, su2double *val_eves) final;
@@ -115,7 +120,6 @@ public:
    * \brief Get viscosity.
    */
   su2double GetViscosity() final;
-
 
   /*!
    * \brief Get T-R and V-E thermal conductivities vector.

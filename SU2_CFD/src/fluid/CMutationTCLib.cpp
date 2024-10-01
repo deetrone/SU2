@@ -68,10 +68,20 @@ CMutationTCLib::CMutationTCLib(const CConfig* config, unsigned short val_nDim): 
   mix.reset(new Mutation::Mixture(opt));
 
   //TODO: regression test if the GetMolarMass and GetSpeciesCharge work if they only return the values calculated here and do not recompute.
+  //NOTE: all charges spcies values are (-)1.60218e-19 i.e. +/-1 * elementary charge which is 1.602176634e-19 coulombs
+  //NOTE: need to check if this is correct or should be +/-1 or 0 only
   for(iSpecies = 0; iSpecies < nSpecies; iSpecies++) {
     MolarMass[iSpecies] = 1000* mix->speciesMw(iSpecies); // x1000 to have Molar Mass in kg/kmol
     ChargeSpecies[iSpecies] = mix->speciesCharge(iSpecies);
   }
+
+  std::ofstream file("species_charge.txt", std::ios::app); // Open file in append mode
+  if (file) {
+      for (auto iSpecies = 0; iSpecies < nSpecies; iSpecies++) {
+        file << "Cs = " << ChargeSpecies[iSpecies] << " for species " << iSpecies << std::endl; 
+      }// Append to file
+  }
+
 
   if (mix->hasElectrons()) {
    // if (config->GetViscous()) {
@@ -213,6 +223,17 @@ su2double CMutationTCLib::ComputeEveSourceTerm(){
   omega = omega_vec[1];
 
   return omega;
+}
+
+su2double CMutationTCLib::ComputeRadSourceTerm() {
+
+  //TODO: check that this is always 0 unless there is radiation. and then it should be non-0
+
+  mix->energyTransferSource(omega_vec.data());
+
+  omegaBB = omega_vec[0]; //for M++ 'Bariselli' version, 0 index refers to TotalEnergy Source Term due to Radiation
+
+  return omegaBB; 
 }
 
 vector<su2double>& CMutationTCLib::ComputeSpeciesEnthalpy(su2double val_T, su2double val_Tve, su2double *val_eves){

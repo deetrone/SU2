@@ -178,6 +178,76 @@ CNumerics::ResidualType<> CSource_NEMO::ComputeVibRelaxation(const CConfig *conf
   return ResidualType<>(residual, jacobian, nullptr);
 }
 
+
+CNumerics::ResidualType<> CSource_NEMO::ComputeRadiation(const CConfig *config) {
+
+  /*--- Radiative energy transfer due to bound-bound emissions ---*/
+  // Note: this implementation needs to be checked and verified
+  // Note: Radiative Kinetics only applied in special version of M++
+  unsigned short iSpecies, iVar;
+  unsigned short jVar;
+  su2double res_min = -1E6;
+  su2double res_max = 1E6;
+
+  vector<su2double> rhos;
+  rhos.resize(nSpecies,0.0);
+
+  /*--- Initialize residual and Jacobian arrays ---*/
+  for (iVar = 0; iVar < nVar; iVar++) {
+    residual[iVar] = 0.0;
+  }
+  if (implicit) {
+    for (iVar = 0; iVar < nVar; iVar++)
+      for (jVar = 0; jVar < nVar; jVar++)
+        jacobian[iVar][jVar] = 0.0;
+  }
+
+  /*--- Rename for convenience ---*/
+  su2double T   = V_i[T_INDEX];
+  su2double Tve = V_i[TVE_INDEX];
+  for(iSpecies = 0; iSpecies < nSpecies; iSpecies++)
+    rhos[iSpecies]=V_i[RHOS_INDEX+iSpecies];
+
+  /*--- Set fluid state ---*/
+  fluidmodel->SetTDStateRhosTTv(rhos, T, Tve);
+
+  /*--- Compute residual and jacobians ---*/
+  su2double BBterm = fluidmodel -> ComputeRadSourceTerm();
+/*
+  std::ofstream file("radiative_source_term.txt", std::ios::app); // Open file in append mode
+  if (file) {
+      file << "OmegaBB = " << BBterm << std::endl; // Append to file
+  }
+  */
+
+  if (implicit) {
+    SU2_MPI::Error("Function to compute Radiative Source Term Jacobian does not exist yet.", CURRENT_FUNCTION);
+    //fluidmodel->GetEveSourceTermJacobian(V_i, eve_i, Cvve_i, dTdU_i,
+    //                                     dTvedU_i, jacobian);
+  }
+
+  residual[nSpecies+nDim] = BBterm * Volume;
+
+  if (implicit) {
+    for (iVar = 0; iVar<nVar; iVar++) {
+      for (jVar = 0; jVar<nVar; jVar++) {
+        jacobian[iVar][jVar] *= Volume;
+      }
+    }
+  }
+
+  // Note: need to check the relevance of this functionality
+  // Note: TODO: implement this limiting to radiative energy transfer
+  /*--- Relax/limit vt transfer ---*/
+  /*if(config->GetVTTransferResidualLimiting()){
+    if(residual[nSpecies+nDim+1]>res_max) residual[nSpecies+nDim+1]=res_max;
+    if(residual[nSpecies+nDim+1]<res_min) residual[nSpecies+nDim+1]=res_min;
+  }*/
+
+  return ResidualType<>(residual, jacobian, nullptr);
+}
+
+
 CNumerics::ResidualType<> CSource_NEMO::ComputeAxisymmetric(const CConfig *config) {
 
   unsigned short iDim, iSpecies, iVar;

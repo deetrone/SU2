@@ -1410,6 +1410,13 @@ public:
   inline virtual ResidualType<> ComputeVibRelaxation(const CConfig* config) { return ResidualType<>(nullptr,nullptr,nullptr); }
 
   /*!
+   * \overload For numerics classes that store the residual/flux and Jacobians internally.
+   * \param[in] config - Definition of the particular problem.
+   * \return A lightweight const-view (read-only) of the residual/flux and Jacobians.
+   */
+  inline virtual ResidualType<> ComputeRadiation(const CConfig* config) { return ResidualType<>(nullptr,nullptr,nullptr); }
+
+  /*!
    * \brief Calculation of the chemistry source term
    * \param[in] config - Definition of the particular problem.
    * \param[out] val_residual - residual of the source terms

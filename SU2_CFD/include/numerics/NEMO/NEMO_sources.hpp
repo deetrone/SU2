@@ -83,6 +83,12 @@ public:
   ResidualType<> ComputeVibRelaxation(const CConfig* config) final;
 
   /*!
+   * \brief Residual of the radiative energy transfer due to bound-bound emissions.
+   * \param[in] config - Definition of the particular problem.
+   */
+  ResidualType<> ComputeRadiation(const CConfig* config) final;
+
+  /*!
    * \brief Residual of axissymetric source term.
    * \param[in] config - Definition of the particular problem.
    */

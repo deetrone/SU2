@@ -781,6 +781,7 @@ void CNEMOEulerSolver::Source_Residual(CGeometry *geometry, CSolver **solver_con
   unsigned long eAxi_local = 0;
   unsigned long eChm_local = 0;
   unsigned long eVib_local = 0;
+  unsigned long eRad_local = 0;
 
   /*--- Initialize the source residual to zero ---*/
   for (iVar = 0; iVar < nVar; iVar++) Residual[iVar] = 0.0;
@@ -849,6 +850,26 @@ void CNEMOEulerSolver::Source_Residual(CGeometry *geometry, CSolver **solver_con
         eVib_local++;
     }
 
+    /*--- Compute radiation ---*/
+    /// NOTE: work in progress, monoatomic?, Jacobian? 
+
+    // if statement was !monoatomic but I think that is irrelevant for radiation
+    if (!frozen){
+      auto residual = numerics->ComputeRadiation(config);
+
+      /*--- Check for errors before applying source to the linear system ---*/
+      err = CNumerics::CheckResidualNaNs(implicit, nVar, residual);
+
+      /*--- Apply the radiation terms to the linear system ---*/
+      if (!err) {
+        LinSysRes.SubtractBlock(iPoint, residual);
+        if (implicit)
+          Jacobian.SubtractBlock2Diag(iPoint, residual.jacobian_i);
+      } else
+        eRad_local++;
+    }
+
+
     /*--- Compute axisymmetric source terms (if needed) ---*/
     if (axisymm) {
 
@@ -905,15 +926,18 @@ void CNEMOEulerSolver::Source_Residual(CGeometry *geometry, CSolver **solver_con
   unsigned long eAxi_global = eAxi_local;
   unsigned long eChm_global = eChm_local;
   unsigned long eVib_global = eVib_local;
+  unsigned long eRad_global = eRad_local;
 
   //THIS IS NO FUN
   if ((eAxi_global != 0) ||
       (eChm_global != 0) ||
+      (eRad_global != 0) ||
       (eVib_global != 0)) {
     cout << "Warning!! Instances of NaN in the following source terms: " << endl;
     cout << "Axisymmetry: " << eAxi_global << endl;
     cout << "Chemical:    " << eChm_global << endl;
     cout << "Vib. Relax:  " << eVib_global << endl;
+    cout << "Radiative:   " << eRad_global << endl;
   }
 }
 

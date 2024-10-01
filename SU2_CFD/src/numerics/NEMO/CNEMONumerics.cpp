@@ -278,13 +278,16 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
   for (auto iDim = 0; iDim < nDim; iDim++) {
 
       /*--- Species diffusion velocity ---*/
-    if(nEl==1) Flux_Tensor[nEl-1][iDim] = 0.0;
-    // check if nEl-1 is ok style-wise, check sign of flux (i.e. negative signs not applied exactly like Scalabrin, how does it affect Je)
+    // NOTE: 0th index is always electron, set indexing in this way for simplicity
+    // NOTE: When computing Je (Flux_Tensor[0][iDim]) added a -1.0 multiplier to align the sign of Js with Scalabrin 2017
+    //       When the diffusion flux is in the flux tensor in Scalabrin it is listed as -Js, but here it is just "Js"
+    //       Things stay consistent since in Scalabrin the first term is -1*rho*Ds*nablaYs whereas here there is no -1
+    if(nEl==1) Flux_Tensor[0][iDim] = 0.0;
     for (auto iSpecies = nEl; iSpecies < nSpecies; iSpecies++) {
       Flux_Tensor[iSpecies][iDim] = rho*Ds[iSpecies]*GV[RHOS_INDEX+iSpecies][iDim]
           - V[RHOS_INDEX+iSpecies]*Vector[iDim];
       if (nEl==1) { 
-        Flux_Tensor[nEl-1][iDim] += Ms[nEl-1] * Flux_Tensor[iSpecies][iDim] * Cs[iSpecies] / Ms[iSpecies];
+        Flux_Tensor[0][iDim] += Ms[0] * -1.0 * Flux_Tensor[iSpecies][iDim] * Cs[iSpecies] / Ms[iSpecies];
       }
     }
 

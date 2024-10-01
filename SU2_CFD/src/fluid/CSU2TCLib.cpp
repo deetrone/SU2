@@ -704,6 +704,7 @@ CSU2TCLib::CSU2TCLib(const CConfig* config, unsigned short val_nDim, bool viscou
     MolarMass[6] = 14.0067+15.9994; // NO+
 
     //Species charge. TODO: check it aligns with charge values from M++
+    // NOTE: may need to multiply by 1.602176634e-19 coulombs (elementary charge) as comes from M++
     ChargeSpecies[0] = -1.0; // e-
     ChargeSpecies[1] = 0.0; // N2
     ChargeSpecies[2] = 0.0; // O2
@@ -1640,6 +1641,19 @@ su2double CSU2TCLib::ComputeEveSourceTerm(){
 
   return omega;
 
+}
+
+su2double CSU2TCLib::ComputeRadSourceTerm(){
+
+  /*---                                                                    ---*/
+  /*--- Energy exchange due to bound-bound emissions (radiative).          ---*/
+  /*---                                                                    ---*/
+  // Note: This is only functional with special Mutation++ version, here the function is included to preserve functionality.
+  // Note: This source term is an additional term for the total energy equation.
+
+  omegaBB=0.0;
+
+  return omegaBB;
 }
 
 void CSU2TCLib::GetEveSourceTermJacobian(const su2double *V, const su2double *eve, const su2double *cvve, const su2double *dTdU, const su2double* dTvedU, su2double **val_jacobian){

@@ -168,6 +168,12 @@ public:
    */
   su2double ComputeEveSourceTerm() final;
 
+
+  /*!
+    * \brief Compute energy source term due to radiation (bound-bound). Must return 0; only functional with special M++
+    */
+  su2double ComputeRadSourceTerm() final;
+
   /*!
    * \brief Compute relaxation source term jacobian.
    */

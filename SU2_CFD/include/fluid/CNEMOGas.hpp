@@ -57,6 +57,7 @@ protected:
 
   su2double gamma{0.0};                  /*!< \brief Specific heat ratio. */
   su2double omega{0.0};                  /*!< \brief Vibrational energy source term */
+  su2double omegaBB{0.0};                /*!< \brief Total energy source term due to radiation (bound-bound) */
   su2double T{0.0};                      /*!< \brief Translational temperature. */
   su2double Tve{0.0};                    /*!< \brief Vibrational temperature. */
   su2double ThermalCond_tr{0.0};         /*!< \brief T-R thermal conductivity of the gas mixture. */
@@ -144,6 +145,11 @@ public:
    * \brief Compute vibrational energy source term.
    */
   virtual su2double ComputeEveSourceTerm() { return 0; }
+
+  /*!
+    * \brief Compute energy source term due to radiation (bound-bound). Must be 0, unless there is radiative kinetics using special M++
+    */
+  virtual su2double ComputeRadSourceTerm() { return 0; }
 
   /*!
    * \brief Compute vibration enery source term jacobian.
