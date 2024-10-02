@@ -21,7 +21,4 @@
 [submodule "externals/mel"]
 	path = externals/mel
 	url = https://github.com/pcarruscag/MEL.git
-[submodule "subprojects/Mutationpp"]
-	path = subprojects/Mutationpp
-	url = https://github.com/deetrone/Mutationpp.git
-	branch = main_sts
+
