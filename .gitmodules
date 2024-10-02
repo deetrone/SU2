@@ -23,5 +23,5 @@
 	url = https://github.com/pcarruscag/MEL.git
 [submodule "subprojects/Mutationpp"]
 	path = subprojects/Mutationpp
-	url = https://github.com/bariselli/Mutationpp.git
-	branch = sts-ig
+	url = https://github.com/deetrone/Mutationpp.git
+	branch = main_sts
