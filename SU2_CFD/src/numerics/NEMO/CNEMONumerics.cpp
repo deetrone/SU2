@@ -282,6 +282,9 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
     // NOTE: When computing Je (Flux_Tensor[0][iDim]) added a -1.0 multiplier to align the sign of Js with Scalabrin 2017
     //       When the diffusion flux is in the flux tensor in Scalabrin it is listed as -Js, but here it is just "Js"
     //       Things stay consistent since in Scalabrin the first term is -1*rho*Ds*nablaYs whereas here there is no -1
+    // NOTE: From Scalabrin it is unclear whether Species Charge has the elementary charge multiplier or only takes values +/-1 and 0
+    //       However, to have the correct dimensions on both sides it must be dimensionless
+    //       Furthermore, were it in coulombs Je would be ~1e22 orders of magnitude smallers than any Js 
     if(nEl==1) Flux_Tensor[0][iDim] = 0.0;
     for (auto iSpecies = nEl; iSpecies < nSpecies; iSpecies++) {
       Flux_Tensor[iSpecies][iDim] = rho*Ds[iSpecies]*GV[RHOS_INDEX+iSpecies][iDim]

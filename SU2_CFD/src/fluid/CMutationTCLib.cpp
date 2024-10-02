@@ -68,19 +68,20 @@ CMutationTCLib::CMutationTCLib(const CConfig* config, unsigned short val_nDim): 
   mix.reset(new Mutation::Mixture(opt));
 
   //TODO: regression test if the GetMolarMass and GetSpeciesCharge work if they only return the values calculated here and do not recompute.
-  //NOTE: all charges spcies values are (-)1.60218e-19 i.e. +/-1 * elementary charge which is 1.602176634e-19 coulombs
-  //NOTE: need to check if this is correct or should be +/-1 or 0 only
+  //NOTE: Charge divided by constant (elementary charge), value taken from M++. This makes it dimensionless +1, 0, -1
   for(iSpecies = 0; iSpecies < nSpecies; iSpecies++) {
     MolarMass[iSpecies] = 1000* mix->speciesMw(iSpecies); // x1000 to have Molar Mass in kg/kmol
-    ChargeSpecies[iSpecies] = mix->speciesCharge(iSpecies);
+    ChargeSpecies[iSpecies] =  mix->speciesCharge(iSpecies) / 1.602176565E-19;
   }
 
+/*
   std::ofstream file("species_charge.txt", std::ios::app); // Open file in append mode
   if (file) {
       for (auto iSpecies = 0; iSpecies < nSpecies; iSpecies++) {
-        file << "Cs = " << ChargeSpecies[iSpecies] << " for species " << iSpecies << std::endl; 
-      }// Append to file
+        file << "Cs = " << ChargeSpecies[iSpecies] << " for species " << iSpecies << std::endl; // Append to file
+      }
   }
+  */
 
 
   if (mix->hasElectrons()) {
@@ -156,7 +157,7 @@ vector<su2double>& CMutationTCLib::GetSpeciesMolarMass(){
 
 vector<su2double>& CMutationTCLib::GetSpeciesCharge() {
 
-  for(iSpecies = 0; iSpecies < nSpecies; iSpecies++) ChargeSpecies[iSpecies] = mix->speciesCharge(iSpecies);
+  for(iSpecies = 0; iSpecies < nSpecies; iSpecies++) ChargeSpecies[iSpecies] = mix->speciesCharge(iSpecies) / 1.602176565E-19;
 
   return ChargeSpecies;
 }
